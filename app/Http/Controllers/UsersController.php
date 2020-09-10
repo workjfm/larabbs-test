@@ -5,12 +5,18 @@ namespace App\Http\Controllers;
 use App\Handlers\ImageUploadHandler;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse as RedirectResponseAlias;
 use Illuminate\View\View as ViewAlias;
 
 class UsersController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth', ['except' => ['show']]);
+    }
+
     /**
      * 用户详情页
      * @param User $user
@@ -25,21 +31,25 @@ class UsersController extends Controller
      * 用户编辑页面
      * @param User $user
      * @return Factory|ViewAlias
+     * @throws AuthorizationException
      */
     public function edit(User $user)
     {
+        $this->authorize('update', $user);
         return view('users.edit', compact('user'));
     }
 
     /**
-     * 编辑
+     * 编辑个人信息
      * @param UserRequest $request
      * @param User $user
      * @param ImageUploadHandler $uploadHandler
      * @return RedirectResponseAlias
+     * @throws AuthorizationException
      */
     public function update(UserRequest $request, User $user, ImageUploadHandler $uploadHandler)
     {
+        $this->authorize('update', $user);
         $data = $request->all();
 
         if ($request->hasFile('avatar')) {
